@@ -6,13 +6,12 @@ if len(sys.argv) != 2:
     exit()
 
 n = int(sys.argv[1])
-test = range(n)
 fd = open('vector-test/vector-' + str(n), 'w')
 
 fd.write(str(n) + '\n')
 
-for i in test:
-    fd.write(str(random.randint(-10, 10)))
+for i in range(n):
+    fd.write(str(random.uniform(-100000, 100000)))
 
     if i != n:
         fd.write(' ')

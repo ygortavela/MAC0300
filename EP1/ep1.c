@@ -1,10 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "util.h"
-
-#define DEBUG 1
+#include "ep1.h"
 
 double dot_product(int n, double *x, double *y) {
   double dot_product = 0;
@@ -40,20 +34,18 @@ void matrix_vector_by_column(int n, double **A, double *x, double *b) {
   }
 }
 
-void matrix_matrix_ijk(int n, double **A, double **X, double **B) {
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++)
-      for (int k = 0; k < n; k++)
+void matrix_matrix_jki(int n, double **A, double **X, double **B) {
+  for (int j = 0; j < n; j++)
+    for (int k = 0; k < n; k++)
+      for (int i = 0; i < n; i++)
         B[i][j] = B[i][j] + A[i][k]*X[k][j];
-  }
-}
 
+}
 void matrix_matrix_ikj(int n, double **A, double **X, double **B) {
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++)
     for (int k = 0; k < n; k++)
       for (int j = 0; j < n; j++)
         B[i][j] = B[i][j] + A[i][k]*X[k][j];
-  }
 }
 
 void case_one() {
@@ -66,7 +58,11 @@ void case_one() {
   n = read_size();
   y = read_vector(n);
 
+
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
   result = dot_product(n, x, y);
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
   if (DEBUG) printf("%.3lf\n", result);
 
   free(x);
@@ -80,7 +76,10 @@ void case_two() {
   n = read_size();
   x = read_vector(n);
 
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
   result = euclidean_norm(n, x);
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
   if (DEBUG) printf("%.3lf\n", result);
 
   free(x);
@@ -99,7 +98,10 @@ void case_three() {
   b = allocate_vector(n);
   initialize_vector(n, b);
 
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
   matrix_vector_by_row(n, A, x, b);
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
   if (DEBUG) print_vector(n, b);
 
   free_matrix(n, A);
@@ -120,7 +122,10 @@ void case_four() {
   b = allocate_vector(n);
   initialize_vector(n, b);
 
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
   matrix_vector_by_column(n, A, x, b);
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
   if (DEBUG) print_vector(n, b);
 
   free_matrix(n, A);
@@ -141,7 +146,10 @@ void case_five() {
   B = allocate_matrix(n);
   initialize_matrix(n, B);
 
-  matrix_matrix_ijk(n, A, X, B);
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
+  matrix_matrix_jki(n, A, X, B);
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
   if (DEBUG) print_matrix(n, B);
 
   free_matrix(n, A);
@@ -162,7 +170,10 @@ void case_six() {
   B = allocate_matrix(n);
   initialize_matrix(n, B);
 
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
   matrix_matrix_ikj(n, A, X, B);
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
   if (DEBUG) print_matrix(n, B);
 
   free_matrix(n, A);
@@ -203,6 +214,12 @@ int main(int argc, char* argv[]) {
     case 6:
       case_six();
       break;
+  }
+
+  if (TIME_BENCHMARK) {
+    printf("[%f, clock_gettime]\n",
+      (double) (timer.t_end.tv_sec - timer.t_start.tv_sec) +
+      (double) (timer.t_end.tv_nsec - timer.t_start.tv_nsec) / 1000000000.0);
   }
 }
 
