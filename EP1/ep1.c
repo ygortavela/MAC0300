@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "utils.h"
+#include "util.h"
 
 double dot_product(int n, double *x, double *y) {
   double dot_product = 0;
@@ -51,11 +51,11 @@ void matrix_matrix_ijk(int n, double **A, double **X, double **B) {
 }
 
 int main(int argc, char* argv[]) {
-  int option = atoi(argv[1]);
+  int option = argc == 2 ? atoi(argv[1]) : -1;
 
   if (argc != 2 || option <= 0 || option > 6) {
-    printf("Uso correto do programa é ./ep1 #numero_operacao\n");
-    printf("sendo #numero_operacao dado por:\n");
+    printf("Execute ./ep1 #numero_operacao\n");
+    printf("Sendo #numero_operacao dado por:\n");
     printf("1 - produto interno entre dois vetores de entrada x e y com tamanho n\n");
     printf("2 - norma euclidiana de um vetor x de tamanho n\n");
     printf("3 - produto matriz A por vetor x seguindo loop da matriz por linhas\n");

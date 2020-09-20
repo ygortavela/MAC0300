@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "utils.h"
+#include "util.h"
 
 double largest_vector_component(int n, double *x) {
   double temp, max = fabs(x[0]);
@@ -55,7 +55,7 @@ double *read_vector() {
   vector = allocate_vector(n);
 
   for (int i = 0; i < n; i++)
-    scanf("%lf", vector[i]);
+    scanf("%lf", &vector[i]);
 
   return vector;
 }
