@@ -13,8 +13,14 @@ double **allocate_matrix(int n);
 
 void free_matrix(int n, double **A);
 
+int read_size();
+
 double *read_vector();
 
 double **read_matrix();
+
+void print_vector();
+
+void print_matrix();
 
 #endif

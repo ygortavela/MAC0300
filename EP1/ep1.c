@@ -4,6 +4,8 @@
 
 #include "util.h"
 
+#define DEBUG 1
+
 double dot_product(int n, double *x, double *y) {
   double dot_product = 0;
 
@@ -25,8 +27,6 @@ double euclidean_norm(int n, double *x) {
 }
 
 void matrix_vector_by_row(int n, double **A, double *x, double *b) {
-  initialize_vector(n, b);
-
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++)
       b[i] = b[i] + A[i][j]*x[j];
@@ -34,8 +34,6 @@ void matrix_vector_by_row(int n, double **A, double *x, double *b) {
 }
 
 void matrix_vector_by_column(int n, double **A, double *x, double *b) {
-  initialize_vector(n, b);
-
   for (int j = 0; j < n; j++) {
     for (int i = 0; i < n; i++)
       b[i] = b[i] + A[i][j]*x[j];
@@ -48,6 +46,128 @@ void matrix_matrix_ijk(int n, double **A, double **X, double **B) {
       for (int k = 0; k < n; k++)
         B[i][j] = B[i][j] + A[i][k]*X[k][j];
   }
+}
+
+void matrix_matrix_ikj(int n, double **A, double **X, double **B) {
+  for (int i = 0; i < n; i++) {
+    for (int k = 0; k < n; k++)
+      for (int j = 0; j < n; j++)
+        B[i][j] = B[i][j] + A[i][k]*X[k][j];
+  }
+}
+
+void case_one() {
+  int n;
+  double *x, *y, result;
+
+  n = read_size();
+  x = read_vector(n);
+
+  n = read_size();
+  y = read_vector(n);
+
+  result = dot_product(n, x, y);
+  if (DEBUG) printf("%.3lf\n", result);
+
+  free(x);
+  free(y);
+}
+
+void case_two() {
+  int n;
+  double *x, result;
+
+  n = read_size();
+  x = read_vector(n);
+
+  result = euclidean_norm(n, x);
+  if (DEBUG) printf("%.3lf\n", result);
+
+  free(x);
+}
+
+void case_three() {
+  int n;
+  double **A, *x, *b;
+
+  n = read_size();
+  A = read_matrix(n);
+
+  n = read_size();
+  x = read_vector(n);
+
+  b = allocate_vector(n);
+  initialize_vector(n, b);
+
+  matrix_vector_by_row(n, A, x, b);
+  if (DEBUG) print_vector(n, b);
+
+  free_matrix(n, A);
+  free(x);
+  free(b);
+}
+
+void case_four() {
+  int n;
+  double **A, *x, *b;
+
+  n = read_size();
+  A = read_matrix(n);
+
+  n = read_size();
+  x = read_vector(n);
+
+  b = allocate_vector(n);
+  initialize_vector(n, b);
+
+  matrix_vector_by_column(n, A, x, b);
+  if (DEBUG) print_vector(n, b);
+
+  free_matrix(n, A);
+  free(x);
+  free(b);
+}
+
+void case_five() {
+  int n;
+  double **A, **X, **B;
+
+  n = read_size();
+  A = read_matrix(n);
+
+  n = read_size();
+  X = read_matrix(n);
+
+  B = allocate_matrix(n);
+  initialize_matrix(n, B);
+
+  matrix_matrix_ijk(n, A, X, B);
+  if (DEBUG) print_matrix(n, B);
+
+  free_matrix(n, A);
+  free_matrix(n, B);
+  free_matrix(n, X);
+}
+
+void case_six() {
+  int n;
+  double **A, **X, **B;
+
+  n = read_size();
+  A = read_matrix(n);
+
+  n = read_size();
+  X = read_matrix(n);
+
+  B = allocate_matrix(n);
+  initialize_matrix(n, B);
+
+  matrix_matrix_ikj(n, A, X, B);
+  if (DEBUG) print_matrix(n, B);
+
+  free_matrix(n, A);
+  free_matrix(n, B);
+  free_matrix(n, X);
 }
 
 int main(int argc, char* argv[]) {
@@ -64,6 +184,25 @@ int main(int argc, char* argv[]) {
     printf("6 - produto matriz A por matriz X seguindo ordem de loop ikj\n");
   }
 
-  printf("%d\n", option);
+  switch (option) {
+    case 1:
+      case_one();
+      break;
+    case 2:
+      case_two();
+      break;
+    case 3:
+      case_three();
+      break;
+    case 4:
+      case_four();
+      break;
+    case 5:
+      case_five();
+      break;
+    case 6:
+      case_six();
+      break;
+  }
 }
 

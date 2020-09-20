@@ -17,14 +17,14 @@ double largest_vector_component(int n, double *x) {
   return max;
 }
 
-void initialize_vector(int n, double *b) {
+void initialize_vector(int n, double *x) {
   for (int i = 0; i < n; i++)
-    b[i] = 0;
+    x[i] = 0;
 }
 
-void initialize_matrix(int n, double **A) {
+void initialize_matrix(int n, double **X) {
   for (int i = 0; i < n; i++)
-    initialize_vector(n, A[i]);
+    initialize_vector(n, X[i]);
 }
 
 double *allocate_vector(int n) {
@@ -47,11 +47,17 @@ void free_matrix(int n, double **A) {
   free(A);
 }
 
-double *read_vector() {
+int read_size() {
   int n;
-  double *vector;
 
   scanf("%d", &n);
+
+  return n;
+}
+
+double *read_vector(int n) {
+  double *vector;
+
   vector = allocate_vector(n);
 
   for (int i = 0; i < n; i++)
@@ -60,11 +66,9 @@ double *read_vector() {
   return vector;
 }
 
-double **read_matrix() {
-  int n;
+double **read_matrix(int n) {
   double **matrix;
 
-  scanf("%d", &n);
   matrix = allocate_matrix(n);
 
   for (int i = 0; i < n; i++)
@@ -72,4 +76,16 @@ double **read_matrix() {
       scanf("%lf", &matrix[i][j]);
 
   return matrix;
+}
+
+void print_vector(int n, double *x) {
+  for (int i = 0; i < n; i++)
+    printf("%.3lf ", x[i]);
+
+  printf("\n");
+}
+
+void print_matrix(int n, double **A) {
+  for (int i = 0; i < n; i++)
+    print_vector(n, A[i]);
 }
