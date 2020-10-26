@@ -2,19 +2,16 @@
 
 int cholcol(int n, double **A) {
   for (int j = 0; j < n; j++) {
-    for (int k = 0; k < j; k++)
-      A[j][j] -= A[j][k] * A[j][k];
-
     if (A[j][j] <= 0) return -1;
 
     A[j][j] = sqrt(A[j][j]);
 
-    for (int i = j + 1; i < n; i++) {
-      for (int k = 0; k < j; k++)
-        A[i][j] -= A[j][k] * A[i][k];
-
+    for (int i = j + 1; i < n; i++)
       A[i][j] /= A[j][j];
-    }
+
+    for (int k = j + 1; k < n; k++)
+      for (int i = k; i < n; i++)
+        A[i][k] -= A[i][j] * A[k][j];
   }
 
   return 0;
