@@ -111,6 +111,108 @@ int backrow(int n, double **A, double *b, int trans) {
   return 0;
 }
 
+int lucol(int n, double **A, int *p) {
+  int pivot_index;
+
+  for (int k = 0; k < n - 1; k++) {
+    pivot_index = pivot_row_index(n, A, k);
+
+    if (fabs(A[pivot_index][k]) < EPSILON) {
+      p[k] = -1;
+
+      return -1;
+    } else {
+      p[k] = pivot_index;
+
+      if (k != pivot_index) interchange_pivot_row(k, pivot_index, A);
+
+      for (int i = k + 1; i < n; i++)
+        A[i][k] /= A[k][k];
+
+      for (int j = k + 1; j < n; j++)
+        for (int i = k + 1; i < n; i++)
+          A[i][j] -= A[i][k] * A[k][j];
+    }
+  }
+
+  if (A[n - 1][n - 1] == 0) {
+    p[n - 1] = -1;
+
+    return -1;
+  }
+
+  p[n - 1] = n - 1;
+
+  return 0;
+}
+
+int sscol(int n, double **A, int *p, double *b) {
+  double temp;
+
+  for (int k = 0; k < n - 1; k++) {
+    temp = b[p[k]];
+    b[p[k]] = b[k];
+    b[k] = temp;
+  }
+
+  for (int j = 0; j < n - 1; j++)
+    for (int i = j + 1; i < n; i++)
+      b[i] -= A[i][j] * b[j];
+
+  return backcol(n, A, b, 0);
+}
+
+int lurow(int n, double **A, int *p) {
+  int pivot_index;
+
+  for (int k = 0; k < n - 1; k++) {
+    pivot_index = pivot_row_index(n, A, k);
+
+    if (fabs(A[pivot_index][k]) < EPSILON) {
+      p[k] = -1;
+
+      return -1;
+    } else {
+      p[k] = pivot_index;
+
+      if (k != pivot_index) interchange_pivot_row(k, pivot_index, A);
+
+      for (int i = k + 1; i < n; i++)
+        A[i][k] /= A[k][k];
+
+      for (int i = k + 1; i < n; i++)
+        for (int j = k + 1; j < n; j++)
+          A[i][j] -= A[i][k] * A[k][j];
+    }
+  }
+
+  if (A[n - 1][n - 1] == 0) {
+    p[n - 1] = -1;
+
+    return -1;
+  }
+
+  p[n - 1] = n - 1;
+
+  return 0;
+}
+
+int ssrow(int n, double **A, int *p, double *b) {
+  double temp;
+
+  for (int k = 0; k < n - 1; k++) {
+    temp = b[p[k]];
+    b[p[k]] = b[k];
+    b[k] = temp;
+  }
+
+  for (int i = 1; i < n; i++)
+    for (int j = 0; j < i; j++)
+      b[i] -= A[i][j] * b[j];
+
+  return backrow(n, A, b, 0);
+}
+
 void cholesky_method(int option) {
   int n, error;
   double *b, **A;
@@ -161,14 +263,58 @@ void cholesky_method(int option) {
   free(b);
 }
 
+void gaussian_method(int option) {
+  int n, error;
+  double *b, **A;
+  int *p;
+
+  n = read_size();
+  A = read_matrix(n);
+  b = read_vector(n);
+  p = malloc(n * sizeof(int));
+
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
+  if (option == COLUMN) error = lucol(n, A, p);
+  else if (option == ROW) error = lurow(n, A, p);
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
+  if (!error && TIME_BENCHMARK) {
+    printf("Elapsed time to solve PA = LU: %lf\n",
+      (double) (timer.t_end.tv_sec - timer.t_start.tv_sec) +
+      (double) (timer.t_end.tv_nsec - timer.t_start.tv_nsec) / 1000000000.0);
+  }
+
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
+  if (option == COLUMN) error = !error ? sscol(n, A, p, b) : -1;
+  else if (option == ROW) error = !error ? ssrow(n, A, p, b) : -1;
+  clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
+  if (!error && TIME_BENCHMARK) {
+    printf("Elapsed time to solve LUx = Pb: %lf\n",
+      (double) (timer.t_end.tv_sec - timer.t_start.tv_sec) +
+      (double) (timer.t_end.tv_nsec - timer.t_start.tv_nsec) / 1000000000.0);
+  }
+
+  if (DEBUG) {
+    if (!error) print_vector(n, b);
+    else printf("Linear system has infinite solutions\n");
+  }
+
+  free_matrix(n, A);
+  free(b);
+  free(p);
+}
+
 int main(int argc, char* argv[]) {
   int option = argc == 2 ? atoi(argv[1]) : -1;
 
-  if (argc != 2 || option <= 0 || option > 2) {
+  if (argc != 2 || option <= 0 || option > 4) {
     printf("Execute ./ep2 #operation_number\n");
-    printf("Linear system solver of lenght n\n");
-    printf("1 - Positive definite system using Cholesky Decomposition method by COLUMNS\n");
-    printf("2 - Positive definite system using Cholesky Decomposition method by ROWS\n");
+    printf("Linear system solver for systems of lenght n\n");
+    printf("2 - Cholesky Decomposition method for positive definite system by ROWS\n");
+    printf("1 - Cholesky Decomposition method for positive definite system by COLUMNS\n");
+    printf("3 - Gaussian Elimination method for general systems by COLUMNS\n");
+    printf("4 - Gaussian Elimination method for general systems by ROWS\n");
   }
 
   switch (option) {
@@ -177,6 +323,12 @@ int main(int argc, char* argv[]) {
       break;
     case 2:
       cholesky_method(ROW);
+      break;
+    case 3:
+      gaussian_method(COLUMN);
+      break;
+    case 4:
+      gaussian_method(ROW);
       break;
   }
 }

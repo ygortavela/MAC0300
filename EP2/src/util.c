@@ -4,17 +4,22 @@
 
 #include "util.h"
 
-double largest_vector_component(int n, double *x) {
-  double temp, max = fabs(x[0]);
+int pivot_row_index(int n, double **A, int from_index) {
+  int max_index = from_index;
 
-  for (int i = 1; i < n; i++) {
-    temp = fabs(x[i]);
-
-    if (temp > max)
-      max = temp;
+  for (int i = from_index + 1; i < n; i++) {
+    if (A[i][from_index] > A[max_index][from_index])
+      max_index = i;
   }
 
-  return max;
+  return max_index;
+}
+
+void interchange_pivot_row(int k, int pivot_index, double **A) {
+  double *temp = A[k];
+
+  A[k] = A[pivot_index];
+  A[pivot_index] = temp;
 }
 
 void initialize_vector(int n, double *x) {

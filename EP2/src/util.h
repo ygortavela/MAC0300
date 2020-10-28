@@ -1,7 +1,9 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
-double largest_vector_component(int n, double *x);
+int pivot_row_index(int n, double **A, int from_index);
+
+void interchange_pivot_row(int k, int pivot_index, double **A);
 
 void initialize_vector(int n, double *b);
 

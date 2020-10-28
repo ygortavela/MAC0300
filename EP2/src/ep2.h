@@ -35,4 +35,10 @@ int cholrow(int n, double **A);
 int forwrow(int n, double **A, double *b);
 int backrow(int n, double **A, double *b, int trans);
 
+int lucol(int n, double **A, int *p);
+int sscol(int n, double **A, int *p, double *b);
+
+int lurow(int n, double **A, int *p);
+int ssrow(int n, double **A, int *p, double *b);
+
 #endif
