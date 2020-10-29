@@ -311,8 +311,8 @@ int main(int argc, char* argv[]) {
   if (argc != 2 || option <= 0 || option > 4) {
     printf("Execute ./ep2 #operation_number\n");
     printf("Linear system solver for systems of lenght n\n");
-    printf("2 - Cholesky Decomposition method for positive definite system by ROWS\n");
     printf("1 - Cholesky Decomposition method for positive definite system by COLUMNS\n");
+    printf("2 - Cholesky Decomposition method for positive definite system by ROWS\n");
     printf("3 - Gaussian Elimination method for general systems by COLUMNS\n");
     printf("4 - Gaussian Elimination method for general systems by ROWS\n");
   }
