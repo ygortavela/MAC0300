@@ -16,10 +16,6 @@
 #ifndef _EP3_H
 #define _EP3_H
 
-#define EPSILON 1e-6
-#define COLUMN 1
-#define ROW 2
-
 struct timer_info {
   struct timespec t_start;
   struct timespec t_end;
@@ -27,18 +23,15 @@ struct timer_info {
 
 struct timer_info timer;
 
-int cholcol(int n, double **A);
-int forwcol(int n, double **A, double *b);
-int backcol(int n, double **A, double *b, int trans);
+void compute_reflector(int n, int k, double *x, double *gamma, double *tau);
 
-int cholrow(int n, double **A);
-int forwrow(int n, double **A, double *b);
-int backrow(int n, double **A, double *b, int trans);
+void compute_QB(int n, int m, int k, double gamma, double **B);
 
-int lucol(int n, double **A, int *p);
-int sscol(int n, double **A, int *p, double *b);
+void decompose_to_QR(int n, int m, double **A, double *gamma);
 
-int lurow(int n, double **A, int *p);
-int ssrow(int n, double **A, int *p, double *b);
+double *apply_reflectors(int n, int m, struct point **data_points, double **A, double *gamma);
+
+void full_rank();
+
 
 #endif

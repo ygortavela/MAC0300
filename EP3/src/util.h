@@ -1,10 +1,14 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#define EPSILON 1e-6
+
 struct point {
   double t;
   double y;
 };
+
+int backrow(int n, double **A, double *b, int trans);
 
 double euclidean_norm(int n, int init, double *x);
 

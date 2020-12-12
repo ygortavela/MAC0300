@@ -4,6 +4,30 @@
 
 #include "util.h"
 
+int backrow(int n, double **A, double *b, int trans) {
+  if (trans == 0) {
+    for (int i = n - 1; i >= 0; i--) {
+      for (int j = n - 1; j > i; j--)
+        b[i] -= A[i][j] * b[j];
+
+      if (fabs(A[i][i]) < EPSILON) return -1;
+
+      b[i] /= A[i][i];
+    }
+  } else if (trans == 1) {
+    for (int j = n - 1; j >= 0; j--) {
+      if (fabs(A[j][j]) < EPSILON) return -1;
+
+      b[j] /= A[j][j];
+
+      for (int i = j - 1; i >= 0; i--)
+        b[i] -= A[j][i] * b[j];
+    }
+  }
+
+  return 0;
+}
+
 double euclidean_norm(int n, int init, double *x) {
   double dot_sum = 0;
 
