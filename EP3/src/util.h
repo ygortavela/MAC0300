@@ -8,7 +8,7 @@ struct point {
   double y;
 };
 
-int backrow(int n, double **A, double *b, int trans);
+int backrow(int n, double **A, double *b);
 
 double euclidean_norm(int n, int init, double *x);
 
@@ -22,7 +22,7 @@ void interchange_pivot_row(int k, int pivot_index, double **A);
 
 void initialize_vector(int n, double *b);
 
-void initialize_matrix(int n, double **A);
+void initialize_matrix(int n, int m, double **A);
 
 double *allocate_vector(int n);
 

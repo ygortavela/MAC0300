@@ -25,6 +25,8 @@ void compute_reflector(int n, int k, double *x, double *gamma, double *tau) {
 void compute_QB(int n, int m, int k, double gamma, double **B) {
   double *v_t = allocate_vector(n - k), *temp = allocate_vector(m - k - 1);
 
+  initialize_vector(m - k - 1, temp);
+
   for (int i = k; i < n; i++)
     v_t[i - k] = gamma * B[k][i];
 
@@ -87,8 +89,8 @@ void full_rank() {
   gamma = allocate_vector(m);
   decompose_to_QR(n, m, A, gamma);
   c = apply_reflectors(n, m, data_points, A, gamma);
-  backrow(m, A, c, 1);
-  printf("Os coeficientes do polinômio utilizando base padrão, será:\n");
+  backrow(m, A, c);
+  printf("Os coeficientes do polinômio utilizando base padrão, serão:\n");
   print_vector(m, c);
 
   free_matrix(m, A);

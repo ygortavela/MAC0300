@@ -4,25 +4,14 @@
 
 #include "util.h"
 
-int backrow(int n, double **A, double *b, int trans) {
-  if (trans == 0) {
-    for (int i = n - 1; i >= 0; i--) {
-      for (int j = n - 1; j > i; j--)
-        b[i] -= A[i][j] * b[j];
+int backrow(int n, double **A, double *b) {
+  for (int j = n - 1; j >= 0; j--) {
+    if (fabs(A[j][j]) < EPSILON) return -1;
 
-      if (fabs(A[i][i]) < EPSILON) return -1;
+    b[j] /= A[j][j];
 
-      b[i] /= A[i][i];
-    }
-  } else if (trans == 1) {
-    for (int j = n - 1; j >= 0; j--) {
-      if (fabs(A[j][j]) < EPSILON) return -1;
-
-      b[j] /= A[j][j];
-
-      for (int i = j - 1; i >= 0; i--)
-        b[i] -= A[j][i] * b[j];
-    }
+    for (int i = j - 1; i >= 0; i--)
+      b[i] -= A[j][i] * b[j];
   }
 
   return 0;
@@ -85,9 +74,9 @@ void initialize_vector(int n, double *x) {
     x[i] = 0;
 }
 
-void initialize_matrix(int n, double **X) {
+void initialize_matrix(int n, int m, double **X) {
   for (int i = 0; i < n; i++)
-    initialize_vector(n, X[i]);
+    initialize_vector(m, X[i]);
 }
 
 double *allocate_vector(int n) {
