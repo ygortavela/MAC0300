@@ -4,10 +4,20 @@
 
 #include "util.h"
 
-double euclidean_norm(int n, double *x) {
-  double normalized_component, normalized_dot_sum = 0, largest_component = largest_vector_component(n, x);
+double euclidean_norm(int n, int init, double *x) {
+  double dot_sum = 0;
 
-  for (int i = 0; i < n; i++) {
+  for (int i = init; i < n; i++) {
+    dot_sum += x[i] * x[i];
+  }
+
+  return sqrt(dot_sum);
+}
+
+double euclidean_norm_with_scaling(int n, int init, double *x) {
+  double normalized_component, normalized_dot_sum = 0, largest_component = largest_vector_component(n, init, x);
+
+  for (int i = init; i < n; i++) {
     normalized_component = x[i]/largest_component;
     normalized_dot_sum += normalized_component * normalized_component;
   }
@@ -15,10 +25,10 @@ double euclidean_norm(int n, double *x) {
   return largest_component * sqrt(normalized_dot_sum);
 }
 
-double largest_vector_component(int n, double *x) {
-  double temp, max = fabs(x[0]);
+double largest_vector_component(int n, int init, double *x) {
+  double temp, max = fabs(x[init]);
 
-  for (int i = 1; i < n; i++) {
+  for (int i = init + 1; i < n; i++) {
     temp = fabs(x[i]);
 
     if (temp > max)
@@ -60,11 +70,11 @@ double *allocate_vector(int n) {
   return malloc(n * sizeof(double));
 }
 
-double **allocate_matrix(int n) {
+double **allocate_matrix(int n, int m) {
   double **A = malloc(n * sizeof(double *));
 
   for (int i = 0; i < n; i++)
-    A[i] = allocate_vector(n);
+    A[i] = allocate_vector(m);
 
   return A;
 }
@@ -78,11 +88,11 @@ struct point **allocate_data_points(int n) {
   return data_points;
 }
 
-void free_matrix(int n, double **A) {
+void free_matrix(int n, double **matrix) {
   for (int i = 0; i < n; i++)
-    free(A[i]);
+    free(matrix[i]);
 
-  free(A);
+  free(matrix);
 }
 
 void free_data_points(int n, struct point **data_points) {
@@ -100,40 +110,14 @@ int read_size() {
   return n;
 }
 
-double *read_vector(int n) {
-  double *vector;
-  int index;
-
-  vector = allocate_vector(n);
-
-  for (int i = 0; i < n; i++)
-    scanf("%d %lf", &index, &vector[i]);
-
-  return vector;
-}
-
-double **read_matrix(int n) {
-  double **matrix;
-  int row_index, column_index;
-
-  matrix = allocate_matrix(n);
-
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++)
-      scanf("%d %d %lf", &row_index, &column_index, &matrix[i][j]);
-
-  return matrix;
-}
-
 struct point **read_lsp_input(int *n, int *m) {
   struct point **data_points;
 
-  printf("Enter the degree of the polynomial:\n");
   *m = read_size();
-  printf("Enter the quantity of data points:\n");
+  // incrementing m to avoid changes on loops throught the code, remembering the fact that m is the degree of the polynomial
+  *m += 1;
   *n = read_size();
   data_points = allocate_data_points(*n);
-  printf("Enter the data points coordinates: t_i y_i\n");
 
   for (int i = 0; i < *n; i++)
     scanf("%lf %lf", &data_points[i]->t, &data_points[i]->y);
@@ -148,9 +132,9 @@ void print_vector(int n, double *x) {
   printf("\n");
 }
 
-void print_matrix(int n, double **A) {
+void print_matrix(int n, int m, double **matrix) {
   for (int i = 0; i < n; i++)
-    print_vector(n, A[i]);
+    print_vector(m, matrix[i]);
 }
 
 void print_data_points(int n, struct point **data_points) {
@@ -158,3 +142,18 @@ void print_data_points(int n, struct point **data_points) {
     printf("t_%d y_%d: %lf %lf\n", i, i, data_points[i]->t, data_points[i]->y);
 }
 
+double **build_transpose_coefficient_matrix_on_std_basis(int n, int m, struct point **data_points) {
+  double **matrix;
+
+  matrix = allocate_matrix(m, n);
+
+  for (int j = 0; j < n; j++)
+      matrix[0][j] = 1;
+
+  for (int i = 1; i < m; i++) {
+    for (int j = 0; j < n; j++)
+      matrix[i][j] = matrix[i - 1][j] * data_points[j]->t;
+  }
+
+  return matrix;
+}

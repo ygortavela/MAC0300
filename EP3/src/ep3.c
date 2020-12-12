@@ -213,6 +213,7 @@ int ssrow(int n, double **A, int *p, double *b) {
   return backrow(n, A, b, 0);
 }
 
+/*
 void cholesky_method(int option) {
   int n, error;
   double *b, **A;
@@ -304,17 +305,63 @@ void gaussian_method(int option) {
   free(b);
   free(p);
 }
+*/
+
+double compute_reflector_gamma(int n, int k, double *x) {
+  double gamma, tau, beta = largest_vector_component(n, k, x);
+
+  if (fabs(beta) < EPSILON) gamma = 0;
+  else {
+    for (int i = k; i < n; i++) x[i] /= beta;
+
+    tau = euclidean_norm(n, k, x);
+
+    if (x[k] < 0) tau = -tau;
+
+    x[k] += tau;
+    gamma = x[k]/tau;
+
+    for (int i = k + 1; i < n; i++)
+      x[i] /= x[k];
+
+    x[k] = tau * beta;
+  }
+
+  return gamma;
+}
+
+void compute_QB(int n, int m, int k, double gamma, double *u, double **B) {
+  double *v_t = allocate_vector(n - k), *temp = allocate_vector(m - k - 1);
+
+  v_t[0] = gamma;
+
+  for (int i = k + 1; i < n; i++)
+    v_t[i - k - 1] = gamma * u[i];
+
+  for (int j = k + 1; j < m; j++)
+    for (int i = k; i < n; i++)
+        temp[j - k - 1] += v_t[i - k] * B[j][i];
+
+  for (int j = k + 1; j < m; j++)
+    for (int i = k; i < n; i++)
+        B[j][i] -= u[i] * temp[j - k - 1];
+
+  free(v_t);
+  free(temp);
+}
+
 
 void full_rank() {
   int n, m;
   struct point **data_points;
+  double **A;
 
   data_points = read_lsp_input(&n, &m);
 
-  printf("n: %d; m: %d\n", n, m);
+  A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
+  print_matrix(m, n, A);
 
-  print_data_points(n, data_points);
-
+  free_matrix(m, A);
   free_data_points(n, data_points);
 }
 
@@ -324,7 +371,7 @@ int main(int argc, char* argv[]) {
   if (argc != 2 || option <= 0 || option > 4) {
     printf("Execute ./ep3 #operation_number\n");
     printf("Least Squares Problem Solver\n");
-    printf("1 - Full rank case (if the program detect that the system is rank deficient, it will try to solve using the second method)\n");
+    printf("1 - Full rank case (if the program detect that the system is rank deficient, it will try to solve using the rank deficient method)\n");
     printf("2 - Rank deficient case\n");
   }
 
