@@ -42,14 +42,19 @@ void compute_QB(int n, int m, int k, double gamma, double **B) {
   free(temp);
 }
 
-void decompose_to_QR(int n, int m, double **A, double *gamma) {
+int decompose_to_QR(int n, int m, double **A, double *gamma) {
   double tau;
 
   for (int k = 0; k < m; k++) {
     compute_reflector(n, k, A[k], &gamma[k], &tau);
+
+    if (gamma[k] == 0) return -1;
+
     compute_QB(n, m, k, gamma[k], A);
     A[k][k] = - tau;
   }
+
+  return 0;
 }
 
 double *apply_reflectors(int n, int m, struct point **data_points, double **A, double *gamma) {
@@ -79,7 +84,7 @@ double *apply_reflectors(int n, int m, struct point **data_points, double **A, d
 }
 
 void full_rank() {
-  int n, m;
+  int n, m, error;
   struct point **data_points;
   double *gamma, **A, *c;
 
@@ -87,16 +92,21 @@ void full_rank() {
 
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
   gamma = allocate_vector(m);
-  decompose_to_QR(n, m, A, gamma);
-  c = apply_reflectors(n, m, data_points, A, gamma);
-  backrow(m, A, c);
-  printf("Os coeficientes do polinômio utilizando base padrão, serão:\n");
-  print_vector(m, c);
+  error = decompose_to_QR(n, m, A, gamma);
+
+  if (!error) {
+    c = apply_reflectors(n, m, data_points, A, gamma);
+    backrow(m, A, c);
+    printf("The coeficientes from the polynomial - using the standard basis - that solve the least squares problem are:\n");
+    print_vector(m, c);
+    free(c);
+  } else {
+    printf("Overdetermined system hasn't full rank.");
+  }
 
   free_matrix(m, A);
   free_data_points(n, data_points);
   free(gamma);
-  free(c);
 }
 
 int main(int argc, char* argv[]) {
