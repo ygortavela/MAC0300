@@ -5,23 +5,8 @@
 
 #include "util.h"
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
-#ifndef TIME_BENCHMARK
-#define TIME_BENCHMARK 0
-#endif
-
 #ifndef _EP3_H
 #define _EP3_H
-
-struct timer_info {
-  struct timespec t_start;
-  struct timespec t_end;
-};
-
-struct timer_info timer;
 
 void compute_reflector(int n, int k, double *x, double *gamma, double *tau);
 
