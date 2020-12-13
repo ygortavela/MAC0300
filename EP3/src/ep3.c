@@ -1,7 +1,8 @@
 #include "ep3.h"
 
 void compute_reflector(int n, int k, double *x, double *gamma, double *tau) {
-  double beta = largest_vector_component(n, k, x);
+  int max_index = largest_vector_component_index(n, k, x);
+  double beta = x[max_index];
 
   if (fabs(beta) < EPSILON) *gamma = 0;
   else {
@@ -42,7 +43,7 @@ void compute_QB(int n, int m, int k, double gamma, double **B) {
   free(temp);
 }
 
-int decompose_to_QR(int n, int m, double **A, double *gamma) {
+int decompose_transpose_to_QR(int n, int m, double **A, double *gamma) {
   double tau;
 
   for (int k = 0; k < m; k++) {
@@ -92,7 +93,7 @@ void full_rank() {
 
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
   gamma = allocate_vector(m);
-  error = decompose_to_QR(n, m, A, gamma);
+  error = decompose_transpose_to_QR(n, m, A, gamma);
 
   if (!error) {
     c = apply_reflectors(n, m, data_points, A, gamma);
@@ -109,23 +110,45 @@ void full_rank() {
   free(gamma);
 }
 
-int decompose_to_QR_with_column_interchange(int n, int m, double **A, double *gamma) {
-  double tau;
-  int pivot_index, *p = malloc(n * sizeof(int));
+void compute_reflector_without_scaling(int n, int k, double *x, double *gamma, double *tau) {
+  *tau = euclidean_norm(n, k, x);
 
-  for (int k = 0; k < m; k++) {
-    pivot_index = pivot_row_index(m, n, A, k);
-    p[k] = pivot_index;
+  if (x[k] < 0) *tau *= -1;
 
-    if (pivot_index != k) interchange_pivot_row(k, pivot_index, A);
+  x[k] += *tau;
+  *gamma = x[k] / (*tau);
 
-    compute_reflector(n, k, A[k], &gamma[k], &tau);
+  for (int i = k + 1; i < n; i++)
+    x[i] /= x[k];
+
+  x[k] = 1;
+}
+
+int decompose_transpose_to_QR_with_column_interchange(int n, int m, double **A, double *gamma, int *permutation) {
+  int k, pivot_index;
+  double tau, largest_row, *cached_norms = build_cached_row_norms_vector(m, n, A);
+  double matrix_norm = frobenius_norm_using_cached_norms_vector(m, cached_norms);
+
+  for (k = 0; k < m && (k == 0 || largest_row > EPSILON * matrix_norm) ; k++) {
+    update_cached_norms_vector(m, k, cached_norms, A);
+    pivot_index = largest_vector_component_index(m, k, cached_norms);
+    largest_row = cached_norms[pivot_index];
+    permutation[k] = pivot_index;
+
+    if (pivot_index != k) {
+      interchange_pivot_row(k, pivot_index, A);
+      interchange_cached_norms_values(k, pivot_index, cached_norms);
+    }
+
+    compute_reflector_without_scaling(n, k, A[k], &gamma[k], &tau);
 
     if (gamma[k] == 0) return -1;
 
     compute_QB(n, m, k, gamma[k], A);
     A[k][k] = - tau;
   }
+
+  free(cached_norms);
 
   return 0;
 }
@@ -135,12 +158,14 @@ void rank_deficient() {
   int n, m, error;
   struct point **data_points;
   double *gamma, **A, *c;
+  int *permutation;
 
   data_points = read_lsp_input(&n, &m);
-
+  permutation = malloc(n * sizeof(int));
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
-  gamma = allocate_vector(n);
-  error = decompose_to_QR_with_column_interchange(n, m, A, gamma);
+  system_rescale(m, n, A, data_points);
+  gamma = allocate_vector(m);
+  error = decompose_transpose_to_QR_with_column_interchange(n, m, A, gamma, permutation);
 
   if (!error) {
     c = apply_reflectors(n, m, data_points, A, gamma);
@@ -155,12 +180,13 @@ void rank_deficient() {
   free_matrix(m, A);
   free_data_points(n, data_points);
   free(gamma);
+  free(permutation);
 }
 
 int main(int argc, char* argv[]) {
   int option = argc == 2 ? atoi(argv[1]) : -1;
 
-  if (argc != 2 || option <= 0 || option > 4) {
+  if (argc != 2 || option <= 0 || option > 2) {
     printf("Execute ./ep3 #operation_number\n");
     printf("Least Squares Problem Solver\n");
     printf("1 - Full rank case\n");

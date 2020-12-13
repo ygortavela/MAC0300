@@ -27,7 +27,7 @@ void compute_reflector(int n, int k, double *x, double *gamma, double *tau);
 
 void compute_QB(int n, int m, int k, double gamma, double **B);
 
-int decompose_to_QR(int n, int m, double **A, double *gamma);
+int decompose_transpose_to_QR(int n, int m, double **A, double *gamma);
 
 double *apply_reflectors(int n, int m, struct point **data_points, double **A, double *gamma);
 

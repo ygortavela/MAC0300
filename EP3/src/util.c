@@ -34,7 +34,8 @@ double euclidean_norm(int n, int init, double *x) {
 }
 
 double euclidean_norm_with_scaling(int n, int init, double *x) {
-  double normalized_component, normalized_dot_sum = 0, largest_component = largest_vector_component(n, init, x);
+  int max_index = largest_vector_component_index(n, init, x);
+  double normalized_component, normalized_dot_sum = 0, largest_component = x[max_index];
 
   for (int i = init; i < n; i++) {
     normalized_component = x[i]/largest_component;
@@ -44,17 +45,20 @@ double euclidean_norm_with_scaling(int n, int init, double *x) {
   return largest_component * sqrt(normalized_dot_sum);
 }
 
-double largest_vector_component(int n, int init, double *x) {
+int largest_vector_component_index(int n, int init, double *x) {
   double temp, max = fabs(x[init]);
+  int index = init;
 
   for (int i = init + 1; i < n; i++) {
     temp = fabs(x[i]);
 
-    if (temp > max)
+    if (temp > max) {
       max = temp;
+      index = i;
+    }
   }
 
-  return max;
+  return index;
 }
 
 int pivot_row_index(int n_rows, int m_columns, double **A, int init) {
@@ -176,12 +180,17 @@ double **build_transpose_coefficient_matrix_on_std_basis(int n, int m, struct po
 }
 
 double largest_matrix_component(int n, int m, double **A) {
-  double max = largest_vector_component(m, 0, A[0]), aux;
+  int max_index = largest_vector_component_index(m, 0, A[0]), aux_index;
+  double max = A[0][max_index], aux;
 
   for (int i = 1; i < n; i++) {
-    aux = largest_vector_component(m, 0, A[i]);
+    aux_index = largest_vector_component_index(m, 0, A[i]);
+    aux = A[i][max_index];
 
-    if (aux > max) max = aux;
+    if (aux > max) {
+      max_index = aux_index;
+      max = aux;
+    }
   }
 
   return max;
