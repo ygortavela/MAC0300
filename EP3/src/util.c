@@ -33,18 +33,6 @@ double euclidean_norm(int n, int init, double *x) {
   return sqrt(dot_sum);
 }
 
-double euclidean_norm_with_scaling(int n, int init, double *x) {
-  int max_index = largest_vector_component_index(n, init, x);
-  double normalized_component, normalized_dot_sum = 0, largest_component = x[max_index];
-
-  for (int i = init; i < n; i++) {
-    normalized_component = x[i]/largest_component;
-    normalized_dot_sum += normalized_component * normalized_component;
-  }
-
-  return largest_component * sqrt(normalized_dot_sum);
-}
-
 int largest_vector_component_index(int n, int init, double *x) {
   double temp, max = fabs(x[init]);
   int index = init;
@@ -59,22 +47,6 @@ int largest_vector_component_index(int n, int init, double *x) {
   }
 
   return index;
-}
-
-int pivot_row_index(int n_rows, int m_columns, double **A, int init) {
-  double largest_norm = euclidean_norm_with_scaling(m_columns, init, A[init]), aux;
-  int max_index = init;
-
-  for (int i = init + 1; i < n_rows; i++) {
-    aux = euclidean_norm_with_scaling(m_columns, init, A[i]);
-
-    if (aux > largest_norm) {
-      max_index = i;
-      largest_norm = aux;
-    }
-  }
-
-  return max_index;
 }
 
 void initialize_vector(int n, double *x) {
@@ -239,9 +211,41 @@ void update_cached_norms_vector(int n, int init, double *cached_norms, double **
     cached_norms[i] -= A[init - 1][i] * A[init - 1][i];
 }
 
-void interchange_cached_norms_values(int k, int pivot_index, double *cached_norms) {
-  double temp = cached_norms[k];
+void swap_int_vector_value(int k, int pivot_index, int *v) {
+  int temp = v[k];
 
-  cached_norms[k] = cached_norms[pivot_index];
-  cached_norms[pivot_index] = temp;
+  v[k] = v[pivot_index];
+  v[pivot_index] = temp;
+}
+
+void swap_double_vector_value(int k, int pivot_index, double *v) {
+  double temp = v[k];
+
+  v[k] = v[pivot_index];
+  v[pivot_index] = temp;
+}
+
+void assemble_permuted_solution(int r, int n, double *x, int *permutation) {
+  // taking trivial solution to x_2
+  for (int i = r; i < n; i++)
+    x[i] = 0;
+
+  for (int i = 0; i < n; i++) {
+    if (i != permutation[i]) {
+      swap_double_vector_value(i, permutation[i], x);
+      swap_int_vector_value(i, permutation[i], permutation);
+    }
+  }
+}
+
+void print_polynomial_solution(int n, double *x) {
+  printf("The polynomial - using the polynomial standard basis - that solves the least squares problem is:\n");
+  printf("p(t) = %lf + ", x[0]);
+
+  for (int i = 1; i < n; i++) {
+    printf("%lft**%d ", x[i], i);
+    if (i != n - 1) printf("+ ");
+  }
+
+  printf("\n");
 }

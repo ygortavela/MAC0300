@@ -14,11 +14,7 @@ double squared_sum_of_vector(int n, int init, double *x);
 
 double euclidean_norm(int n, int init, double *x);
 
-double euclidean_norm_with_scaling(int n, int init, double *x);
-
 int largest_vector_component_index(int n, int init, double *x);
-
-int pivot_row_index(int n, int m, double **A, int init);
 
 void initialize_vector(int n, double *b);
 
@@ -58,6 +54,12 @@ void interchange_pivot_row(int k, int pivot_index, double **A);
 
 void update_cached_norms_vector(int n, int init, double *cached_norms, double **A);
 
-void interchange_cached_norms_values(int k, int pivot_index, double *cached_norms);
+void swap_int_vector_value(int k, int pivot_index, int *v);
+
+void swap_double_vector_value(int k, int pivot_index, double *v);
+
+void assemble_permuted_solution(int r, int n, double *x, int *permutation);
+
+void print_polynomial_solution(int n, double *x);
 
 #endif

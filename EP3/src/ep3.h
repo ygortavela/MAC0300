@@ -33,5 +33,10 @@ double *apply_reflectors_transpose(int n, int m, struct point **data_points, dou
 
 void full_rank();
 
+void compute_reflector_without_scaling(int n, int k, double *x, double *gamma, double *tau);
+
+int decompose_transpose_to_QR_with_column_interchange(int n, int m, double **A, double *gamma, int *permutation);
+
+void rank_deficient();
 
 #endif

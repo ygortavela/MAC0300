@@ -91,6 +91,12 @@ void full_rank() {
 
   data_points = read_lsp_input(&n, &m);
 
+  if (m > n) {
+    printf("The system is not overdetermined because the degree of the polynomial is greater than the number of given data points.\n");
+    free_data_points(n, data_points);
+    return;
+  }
+
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
   gamma = allocate_vector(m);
   error = decompose_transpose_to_QR(n, m, A, gamma);
@@ -98,8 +104,7 @@ void full_rank() {
   if (!error) {
     c = apply_reflectors_transpose(n, m, data_points, A, gamma);
     backrow(m, A, c);
-    printf("The coeficientes from the polynomial - using the standard basis - that solve the least squares problem are:\n");
-    print_vector(m, c);
+    print_polynomial_solution(m, c);
     free(c);
   } else {
     printf("Overdetermined system hasn't full rank.");
@@ -125,19 +130,18 @@ void compute_reflector_without_scaling(int n, int k, double *x, double *gamma, d
 }
 
 int decompose_transpose_to_QR_with_column_interchange(int n, int m, double **A, double *gamma, int *permutation) {
-  int k, pivot_index;
+  int k, pivot_index, temp;
   double tau, largest_row, *cached_norms = build_cached_row_norms_vector(m, n, A);
   double matrix_norm = frobenius_norm_using_cached_norms_vector(m, cached_norms);
 
   pivot_index = largest_vector_component_index(m, 0, cached_norms);
   largest_row = cached_norms[pivot_index];
 
-  for (k = 0; k < m && (k == 0 || largest_row > EPSILON * matrix_norm) ; k++) {
-    permutation[k] = pivot_index;
-
+  for (k = 0; k < m && largest_row > EPSILON * matrix_norm ; k++) {
     if (pivot_index != k) {
+      swap_int_vector_value(k, pivot_index, permutation);
       interchange_pivot_row(k, pivot_index, A);
-      interchange_cached_norms_values(k, pivot_index, cached_norms);
+      swap_double_vector_value(k, pivot_index, cached_norms);
     }
 
     compute_reflector_without_scaling(n, k, A[k], &gamma[k], &tau);
@@ -153,9 +157,8 @@ int decompose_transpose_to_QR_with_column_interchange(int n, int m, double **A, 
 
   free(cached_norms);
 
-  return k - 1;
+  return k;
 }
-
 
 void rank_deficient() {
   int n, m, r;
@@ -164,21 +167,33 @@ void rank_deficient() {
   int *permutation;
 
   data_points = read_lsp_input(&n, &m);
-  permutation = malloc(n * sizeof(int));
+
+  if (m > n) {
+    printf("The system is not overdetermined because the degree of the polynomial is greater than the number of given data points.\n");
+    free_data_points(n, data_points);
+    return;
+  }
+
+  permutation = malloc(m * sizeof(int));
+
+  for (int i = 0; i < m; i++)
+    permutation[i] = i;
+
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
   system_rescale(m, n, A, data_points);
   gamma = allocate_vector(m);
   r = decompose_transpose_to_QR_with_column_interchange(n, m, A, gamma, permutation);
-  c = apply_reflectors_transpose(n, m, data_points, A, gamma);
-  backrow(m, A, c);
-  printf("The coeficientes from the polynomial - using the standard basis - that solve the least squares problem are:\n");
-  print_vector(m, c);
+  c = apply_reflectors_transpose(n, r, data_points, A, gamma);
+  backrow(r, A, c);
 
-  free(c);
+  assemble_permuted_solution(r, m, c, permutation);
+  print_polynomial_solution(m, c);
+
   free_matrix(m, A);
   free_data_points(n, data_points);
   free(gamma);
   free(permutation);
+  free(c);
 }
 
 int main(int argc, char* argv[]) {
@@ -200,4 +215,3 @@ int main(int argc, char* argv[]) {
       break;
   }
 }
-
