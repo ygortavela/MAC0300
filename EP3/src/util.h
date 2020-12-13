@@ -16,7 +16,7 @@ double euclidean_norm_with_scaling(int n, int init, double *x);
 
 double largest_vector_component(int n, int init, double *x);
 
-int pivot_row_index(int n, double **A, int from_index);
+int pivot_row_index(int n, int m, double **A, int init);
 
 void interchange_pivot_row(int k, int pivot_index, double **A);
 

@@ -57,6 +57,27 @@ int decompose_to_QR(int n, int m, double **A, double *gamma) {
   return 0;
 }
 
+int decompose_to_QR_with_column_interchange(int n, int m, double **A, double *gamma) {
+  double tau;
+  int pivot_index, *p = malloc(n * sizeof(int));
+
+  for (int k = 0; k < m; k++) {
+    pivot_index = pivot_row_index(n, m, A, k);
+    p[k] = pivot_index;
+
+    if (pivot_index != k) interchange_pivot_row(k, pivot_index, A);
+
+    compute_reflector(n, k, A[k], &gamma[k], &tau);
+
+    if (gamma[k] == 0) return -1;
+
+    compute_QB(n, m, k, gamma[k], A);
+    A[k][k] = - tau;
+  }
+
+  return 0;
+}
+
 double *apply_reflectors(int n, int m, struct point **data_points, double **A, double *gamma) {
   double temp, *v_t = allocate_vector(n), *c = allocate_vector(n);
 
@@ -92,6 +113,32 @@ void full_rank() {
 
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
   gamma = allocate_vector(m);
+  error = decompose_to_QR_with_column_interchange(n, m, A, gamma);
+
+  if (!error) {
+    c = apply_reflectors(n, m, data_points, A, gamma);
+    backrow(m, A, c);
+    printf("The coeficientes from the polynomial - using the standard basis - that solve the least squares problem are:\n");
+    print_vector(m, c);
+    free(c);
+  } else {
+    printf("Overdetermined system hasn't full rank.");
+  }
+
+  free_matrix(m, A);
+  free_data_points(n, data_points);
+  free(gamma);
+}
+
+void rank_deficient() {
+  int n, m, error;
+  struct point **data_points;
+  double *gamma, **A, *c;
+
+  data_points = read_lsp_input(&n, &m);
+
+  A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
+  gamma = allocate_vector(n);
   error = decompose_to_QR(n, m, A, gamma);
 
   if (!error) {

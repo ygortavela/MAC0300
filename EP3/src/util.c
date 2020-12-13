@@ -51,12 +51,17 @@ double largest_vector_component(int n, int init, double *x) {
   return max;
 }
 
-int pivot_row_index(int n, double **A, int from_index) {
-  int max_index = from_index;
+int pivot_row_index(int n, int m, double **A, int init) {
+  double largest_norm = euclidean_norm_with_scaling(n, init, A[init]), aux;
+  int max_index = init;
 
-  for (int i = from_index + 1; i < n; i++) {
-    if (A[i][from_index] > A[max_index][from_index])
+  for (int i = init + 1; i < m; i++) {
+    aux = euclidean_norm_with_scaling(n, init, A[i]);
+
+    if (aux > largest_norm) {
       max_index = i;
+      largest_norm = aux;
+    }
   }
 
   return max_index;
