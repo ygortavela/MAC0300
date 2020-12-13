@@ -58,7 +58,7 @@ int decompose_transpose_to_QR(int n, int m, double **A, double *gamma) {
   return 0;
 }
 
-double *apply_reflectors(int n, int m, struct point **data_points, double **A, double *gamma) {
+double *apply_reflectors_transpose(int n, int m, struct point **data_points, double **A, double *gamma) {
   double temp, *v_t = allocate_vector(n), *c = allocate_vector(n);
 
   for (int i = 0; i < n; i++) c[i] = data_points[i]->y;
@@ -96,7 +96,7 @@ void full_rank() {
   error = decompose_transpose_to_QR(n, m, A, gamma);
 
   if (!error) {
-    c = apply_reflectors(n, m, data_points, A, gamma);
+    c = apply_reflectors_transpose(n, m, data_points, A, gamma);
     backrow(m, A, c);
     printf("The coeficientes from the polynomial - using the standard basis - that solve the least squares problem are:\n");
     print_vector(m, c);
@@ -129,10 +129,10 @@ int decompose_transpose_to_QR_with_column_interchange(int n, int m, double **A, 
   double tau, largest_row, *cached_norms = build_cached_row_norms_vector(m, n, A);
   double matrix_norm = frobenius_norm_using_cached_norms_vector(m, cached_norms);
 
+  pivot_index = largest_vector_component_index(m, 0, cached_norms);
+  largest_row = cached_norms[pivot_index];
+
   for (k = 0; k < m && (k == 0 || largest_row > EPSILON * matrix_norm) ; k++) {
-    update_cached_norms_vector(m, k, cached_norms, A);
-    pivot_index = largest_vector_component_index(m, k, cached_norms);
-    largest_row = cached_norms[pivot_index];
     permutation[k] = pivot_index;
 
     if (pivot_index != k) {
@@ -141,21 +141,24 @@ int decompose_transpose_to_QR_with_column_interchange(int n, int m, double **A, 
     }
 
     compute_reflector_without_scaling(n, k, A[k], &gamma[k], &tau);
-
-    if (gamma[k] == 0) return -1;
-
     compute_QB(n, m, k, gamma[k], A);
     A[k][k] = - tau;
+
+    if (k + 1 < m) {
+      update_cached_norms_vector(m, k + 1, cached_norms, A);
+      pivot_index = largest_vector_component_index(m, k + 1, cached_norms);
+      largest_row = cached_norms[pivot_index];
+    }
   }
 
   free(cached_norms);
 
-  return 0;
+  return k - 1;
 }
 
 
 void rank_deficient() {
-  int n, m, error;
+  int n, m, r;
   struct point **data_points;
   double *gamma, **A, *c;
   int *permutation;
@@ -165,18 +168,13 @@ void rank_deficient() {
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
   system_rescale(m, n, A, data_points);
   gamma = allocate_vector(m);
-  error = decompose_transpose_to_QR_with_column_interchange(n, m, A, gamma, permutation);
+  r = decompose_transpose_to_QR_with_column_interchange(n, m, A, gamma, permutation);
+  c = apply_reflectors_transpose(n, m, data_points, A, gamma);
+  backrow(m, A, c);
+  printf("The coeficientes from the polynomial - using the standard basis - that solve the least squares problem are:\n");
+  print_vector(m, c);
 
-  if (!error) {
-    c = apply_reflectors(n, m, data_points, A, gamma);
-    backrow(m, A, c);
-    printf("The coeficientes from the polynomial - using the standard basis - that solve the least squares problem are:\n");
-    print_vector(m, c);
-    free(c);
-  } else {
-    printf("Overdetermined system hasn't full rank.");
-  }
-
+  free(c);
   free_matrix(m, A);
   free_data_points(n, data_points);
   free(gamma);
