@@ -57,27 +57,6 @@ int decompose_to_QR(int n, int m, double **A, double *gamma) {
   return 0;
 }
 
-int decompose_to_QR_with_column_interchange(int n, int m, double **A, double *gamma) {
-  double tau;
-  int pivot_index, *p = malloc(n * sizeof(int));
-
-  for (int k = 0; k < m; k++) {
-    pivot_index = pivot_row_index(n, m, A, k);
-    p[k] = pivot_index;
-
-    if (pivot_index != k) interchange_pivot_row(k, pivot_index, A);
-
-    compute_reflector(n, k, A[k], &gamma[k], &tau);
-
-    if (gamma[k] == 0) return -1;
-
-    compute_QB(n, m, k, gamma[k], A);
-    A[k][k] = - tau;
-  }
-
-  return 0;
-}
-
 double *apply_reflectors(int n, int m, struct point **data_points, double **A, double *gamma) {
   double temp, *v_t = allocate_vector(n), *c = allocate_vector(n);
 
@@ -113,7 +92,7 @@ void full_rank() {
 
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
   gamma = allocate_vector(m);
-  error = decompose_to_QR_with_column_interchange(n, m, A, gamma);
+  error = decompose_to_QR(n, m, A, gamma);
 
   if (!error) {
     c = apply_reflectors(n, m, data_points, A, gamma);
@@ -130,6 +109,28 @@ void full_rank() {
   free(gamma);
 }
 
+int decompose_to_QR_with_column_interchange(int n, int m, double **A, double *gamma) {
+  double tau;
+  int pivot_index, *p = malloc(n * sizeof(int));
+
+  for (int k = 0; k < m; k++) {
+    pivot_index = pivot_row_index(m, n, A, k);
+    p[k] = pivot_index;
+
+    if (pivot_index != k) interchange_pivot_row(k, pivot_index, A);
+
+    compute_reflector(n, k, A[k], &gamma[k], &tau);
+
+    if (gamma[k] == 0) return -1;
+
+    compute_QB(n, m, k, gamma[k], A);
+    A[k][k] = - tau;
+  }
+
+  return 0;
+}
+
+
 void rank_deficient() {
   int n, m, error;
   struct point **data_points;
@@ -139,7 +140,7 @@ void rank_deficient() {
 
   A = build_transpose_coefficient_matrix_on_std_basis(n, m, data_points);
   gamma = allocate_vector(n);
-  error = decompose_to_QR(n, m, A, gamma);
+  error = decompose_to_QR_with_column_interchange(n, m, A, gamma);
 
   if (!error) {
     c = apply_reflectors(n, m, data_points, A, gamma);
@@ -171,6 +172,7 @@ int main(int argc, char* argv[]) {
       full_rank();
       break;
     case 2:
+      rank_deficient();
       break;
   }
 }

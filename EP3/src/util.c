@@ -17,12 +17,18 @@ int backrow(int n, double **A, double *b) {
   return 0;
 }
 
-double euclidean_norm(int n, int init, double *x) {
+double squared_sum_of_vector(int n, int init, double *x) {
   double dot_sum = 0;
 
   for (int i = init; i < n; i++) {
     dot_sum += x[i] * x[i];
   }
+
+  return dot_sum;
+}
+
+double euclidean_norm(int n, int init, double *x) {
+  double dot_sum = squared_sum_of_vector(n, init, x);
 
   return sqrt(dot_sum);
 }
@@ -51,12 +57,12 @@ double largest_vector_component(int n, int init, double *x) {
   return max;
 }
 
-int pivot_row_index(int n, int m, double **A, int init) {
-  double largest_norm = euclidean_norm_with_scaling(n, init, A[init]), aux;
+int pivot_row_index(int n_rows, int m_columns, double **A, int init) {
+  double largest_norm = euclidean_norm_with_scaling(m_columns, init, A[init]), aux;
   int max_index = init;
 
-  for (int i = init + 1; i < m; i++) {
-    aux = euclidean_norm_with_scaling(n, init, A[i]);
+  for (int i = init + 1; i < n_rows; i++) {
+    aux = euclidean_norm_with_scaling(m_columns, init, A[i]);
 
     if (aux > largest_norm) {
       max_index = i;
@@ -65,13 +71,6 @@ int pivot_row_index(int n, int m, double **A, int init) {
   }
 
   return max_index;
-}
-
-void interchange_pivot_row(int k, int pivot_index, double **A) {
-  double *temp = A[k];
-
-  A[k] = A[pivot_index];
-  A[pivot_index] = temp;
 }
 
 void initialize_vector(int n, double *x) {
@@ -174,4 +173,66 @@ double **build_transpose_coefficient_matrix_on_std_basis(int n, int m, struct po
   }
 
   return matrix;
+}
+
+double largest_matrix_component(int n, int m, double **A) {
+  double max = largest_vector_component(m, 0, A[0]), aux;
+
+  for (int i = 1; i < n; i++) {
+    aux = largest_vector_component(m, 0, A[i]);
+
+    if (aux > max) max = aux;
+  }
+
+  return max;
+}
+
+void system_rescale(int n, int m, double **A, struct point **data_points) {
+  double largest_component = largest_matrix_component(n, m, A);
+
+  for (int i = 0; i < n; i++) {
+    data_points[i]->y /= largest_component;
+
+    for (int j = 0; j < m; j++)
+      A[i][j] /= largest_component;
+  }
+}
+
+double *build_cached_row_norms_vector(int n, int m, double **A) {
+  double *cached_norms = allocate_vector(n);
+
+  for (int i = 0; i < n; i++)
+    cached_norms[i] = squared_sum_of_vector(m, 0, A[i]);
+
+  return cached_norms;
+}
+
+double frobenius_norm_using_cached_norms_vector(int n, double *cached_norms) {
+  double sum = 0;
+
+  for (int i = 0; i < n; i++)
+    sum += cached_norms[i];
+
+  return sqrt(sum);
+}
+
+void interchange_pivot_row(int k, int pivot_index, double **A) {
+  double *temp = A[k];
+
+  A[k] = A[pivot_index];
+  A[pivot_index] = temp;
+}
+
+void update_cached_norms_vector(int n, int init, double *cached_norms, double **A) {
+  if (init == 0) return;
+
+  for (int i = init; i < n; i++)
+    cached_norms[i] -= A[init - 1][i] * A[init - 1][i];
+}
+
+void interchange_cached_norms_values(int k, int pivot_index, double *cached_norms) {
+  double temp = cached_norms[k];
+
+  cached_norms[k] = cached_norms[pivot_index];
+  cached_norms[pivot_index] = temp;
 }
