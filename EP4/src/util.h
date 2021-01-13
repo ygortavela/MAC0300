@@ -6,6 +6,7 @@
 #define _UTIL_H
 
 #define EPSILON 1e-6
+#define MAX_ITERATIONS 100
 
 void initialize_vector(int n, double *b);
 
@@ -37,6 +38,12 @@ int forwrow(int n, double **A, double *b);
 
 int backrow(int n, double **A, double *b);
 
-void cholesky_method();
+double *deep_copy_vector(int n, double *target_vector);
+
+void read_system_data(int *n, double **A, double *b);
+
+void scaled_vector_sum(int n, double lambda, double *u, double *v, double *result);
+
+void scaled_vector_subtraction(int n, double lambda, double *u, double *v, double *result);
 
 #endif

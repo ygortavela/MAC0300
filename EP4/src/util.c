@@ -134,3 +134,28 @@ int backrow(int n, double **A, double *b) {
 
   return 0;
 }
+
+double *deep_copy_vector(int n, double *target_vector) {
+  double *vector_copy = malloc(n * sizeof(double));
+
+  for (int i = 0; i < n; i++)
+    vector_copy[i] = target_vector[i];
+
+  return vector_copy;
+}
+
+void read_system_data(int *n, double **A, double *b) {
+  *n = read_size();
+  A = read_matrix(*n);
+  b = read_vector(*n);
+}
+
+void scaled_vector_sum(int n, double lambda, double *u, double *v, double *result) {
+  for (int i = 0; i < n; i++)
+    result[i] = u[i] + (lambda * v[i]);
+}
+
+void scaled_vector_subtraction(int n, double lambda, double *u, double *v, double *result) {
+  for (int i = 0; i < n; i++)
+    result[i] = u[i] - (lambda * v[i]);
+}
