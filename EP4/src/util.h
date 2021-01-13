@@ -40,8 +40,6 @@ int backrow(int n, double **A, double *b);
 
 double *deep_copy_vector(int n, double *target_vector);
 
-void read_system_data(int *n, double **A, double *b);
-
 void scaled_vector_sum(int n, double lambda, double *u, double *v, double *result);
 
 void scaled_vector_subtraction(int n, double lambda, double *u, double *v, double *result);

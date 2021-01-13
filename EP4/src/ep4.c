@@ -5,7 +5,9 @@ void conjugate_gradient_iteration() {
   double *b, **A, *x, *previous_residual, *residual, *search_direction, *streched_search_direction;
   double alfa, beta, residual_dot_product;
 
-  read_system_data(&n, A, b);
+  n = read_size();
+  A = read_matrix(n);
+  b = read_vector(n);
   x = allocate_vector(n);
   initialize_vector(n, x);
   residual = allocate_vector(n);
@@ -52,7 +54,9 @@ void cholesky_method() {
   int n, error;
   double *b, **A;
 
-  read_system_data(&n, A, b);
+  n = read_size();
+  A = read_matrix(n);
+  b = read_vector(n);
 
   clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
   error = cholrow(n, A);
