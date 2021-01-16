@@ -14,12 +14,12 @@ fd.write(str(n) + '\n')
 
 # generating coefficients matrix
 prng = np.random.RandomState(13)
-prec = make_sparse_spd_matrix(n, alpha=.7, random_state=prng)
-np.savetxt(fd, prec, fmt="%.8lf")
+prec = make_sparse_spd_matrix(n, alpha=.98, random_state=prng)
+np.savetxt(fd, prec, fmt="%lf")
 
 # generating b random vector
 for i in range(n):
-    fd.write(str(random.uniform(-1, 1)))
+    fd.write(str(random.uniform(0, 1)))
 
     if i != n:
         fd.write(' ')

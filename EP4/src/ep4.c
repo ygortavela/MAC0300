@@ -1,36 +1,55 @@
 #include "ep4.h"
 
 void conjugate_gradient_iteration() {
-  int n;
-  double *b, **A, *x, *previous_residual, *residual, *search_direction, *streched_search_direction;
-  double alfa, beta, residual_dot_product;
+  int n, i;
+  double *b, **A, *x_previous, *x, *previous_residual, *residual, *previous_search_direction, *search_direction, *streched_search_direction;
+  double alfa, beta, previous_residual_dot_product, residual_dot_product;
 
   n = read_size();
   A = read_matrix(n);
   b = read_vector(n);
-  x = allocate_vector(n);
-  initialize_vector(n, x);
-  residual = allocate_vector(n);
+  x_previous = allocate_vector(n);
+  initialize_vector(n, x_previous);
   previous_residual = deep_copy_vector(n, b);
-  search_direction = deep_copy_vector(n, b);
+  previous_search_direction = deep_copy_vector(n, b);
   streched_search_direction = allocate_vector(n);
 
   clock_gettime(CLOCK_MONOTONIC, &timer.t_start);
 
-  for (int i = 0; i < MAX_ITERATIONS; i++) {
-    matrix_vector_product(n, A, search_direction, streched_search_direction);
-    alfa = dot_product(n, previous_residual, previous_residual)/dot_product(n, search_direction, streched_search_direction);
-    scaled_vector_sum(n, alfa, x, previous_residual, x);
+  for (i = 0; i < MAX_ITERATIONS; i++) {
+    x = allocate_vector(n);
+    residual = allocate_vector(n);
+    search_direction = allocate_vector(n);
+    initialize_vector(n, streched_search_direction);
+    matrix_vector_product(n, A, previous_search_direction, streched_search_direction);
+    previous_residual_dot_product = dot_product(n, previous_residual, previous_residual);
+
+    alfa = previous_residual_dot_product/dot_product(n, previous_search_direction, streched_search_direction);
+    scaled_vector_sum(n, alfa, x_previous, previous_residual, x);
     scaled_vector_subtraction(n, alfa, previous_residual, streched_search_direction, residual);
     residual_dot_product = dot_product(n, residual, residual);
 
-    if (fabs(residual_dot_product) > EPSILON) break;
+    if (residual_dot_product < EPSILON) {
+      free(x_previous);
+      free(previous_residual);
+      free(previous_search_direction);
+      break;
+    }
 
-    beta = residual_dot_product/dot_product(n, previous_residual, previous_residual);
-    scaled_vector_sum(n, beta, residual, search_direction, search_direction);
+    beta = residual_dot_product/previous_residual_dot_product;
+    scaled_vector_sum(n, beta, residual, previous_search_direction, search_direction);
+
+    free(x_previous);
+    free(previous_residual);
+    free(previous_search_direction);
+    x_previous = x;
+    previous_residual = residual;
+    previous_search_direction = search_direction;
   }
 
   clock_gettime(CLOCK_MONOTONIC, &timer.t_end);
+
+  printf("Number of iterations: %d\n", i);
 
   if (TIME_BENCHMARK) {
     printf("Elapsed time to solve Ax = b: %lf\n",
@@ -38,13 +57,11 @@ void conjugate_gradient_iteration() {
       (double) (timer.t_end.tv_nsec - timer.t_start.tv_nsec) / 1000000000.0);
   }
 
-  if (DEBUG)
-    print_vector(n, b);
+  if (DEBUG) print_vector(n, x);
 
   free_matrix(n, A);
   free(b);
   free(x);
-  free(previous_residual);
   free(residual);
   free(search_direction);
   free(streched_search_direction);

@@ -82,6 +82,17 @@ double dot_product(int n, double *x, double *y) {
   return dot_product;
 }
 
+double euclidean_norm(int n, double *x) {
+  double normalized_component, normalized_dot_sum = 0, largest_component = largest_vector_component(n, x);
+
+  for (int i = 0; i < n; i++) {
+    normalized_component = x[i]/largest_component;
+    normalized_dot_sum += normalized_component * normalized_component;
+  }
+
+  return largest_component * sqrt(normalized_dot_sum);
+}
+
 void matrix_vector_product(int n, double **A, double *x, double *b) {
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++)

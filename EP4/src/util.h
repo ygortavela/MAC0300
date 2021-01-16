@@ -5,8 +5,8 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
-#define EPSILON 1e-6
-#define MAX_ITERATIONS 100
+#define EPSILON 1e-8
+#define MAX_ITERATIONS 10000
 
 void initialize_vector(int n, double *b);
 
@@ -29,6 +29,8 @@ void print_vector(int n, double *x);
 void print_matrix(int n, double **matrix);
 
 double dot_product(int n, double *x, double *y);
+
+double euclidean_norm(int n, double *x);
 
 void matrix_vector_product(int n, double **A, double *x, double *b);
 
